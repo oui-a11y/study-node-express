@@ -85,16 +85,71 @@ router.get('/', function (req, res, next) {
 //购物车提交
 router.get('/addCart', function (req, res, next) {
     var userId = '102';
+    productId = req.body.productId;
     console.log(1111);
 
-    user.findOne({'userId': userId}, function (err, data) {
+    user.findOne({'userId': userId}, function (err, userDoc) {
         if (err) {
             res.json({
                 status: '1',
                 msg: err.message
             });
         } else {
-            console.log(data);
+            console.log('userDoc' + userDoc);
+            if(userDoc){
+                let goodsItem = '';
+                userDoc.cartList.forEach(function (item) {
+                    if(item.productId == productId){
+                        goodsItem = item;
+                        item.productNum ++;
+                    }
+                });
+                if(goodsItem){
+                    userDoc.save(function (err2,doc2) {
+                        if(err2){
+                            res.json({
+                                status:'1',
+                                msg:err2.message
+                            })
+                        }else{
+                            res.json({
+                                status:'0',
+                                msg:'',
+                                result:'success'
+                            })
+                        }
+                    })
+                }else{
+                    goods.findOne({productId:productId},function (err1,doc) {
+                        if(err1){
+                            res.json({
+                                status:'1',
+                                msg:err1.message
+                            })
+                        }else{
+                            if(doc){
+                                doc.productNum = 1;
+                                doc.checked = 1;
+                                userDoc.cartList.push(doc);
+                                userDoc.save(function (err3,doc3) {
+                                    if(err3){
+                                        res.json({
+                                            status:'1',
+                                            msg:err3.message
+                                        })
+                                    }else{
+                                        res.json({
+                                            status:'0',
+                                            msg:'',
+                                            result:'success'
+                                        })
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+            }
             res.json({
                 status: '0',
                 msg: '',
